@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { db } from "@/lib/db";
+import { contactMessages } from "@/lib/db/schema";
 
 /**
  * POST /api/contact
  * ──────────────────
  * REST API route for the contact form.
- * This is an alternative to the Server Action approach —
- * useful for external integrations, mobile apps, or the admin panel.
- *
- * When PostgreSQL is connected:
- * 1. Import your DB client (e.g., Drizzle / Prisma)
- * 2. Insert the validated data into the `contact_messages` table
- * 3. Optionally trigger an email notification
+ * Inserts into PostgreSQL via Drizzle ORM.
  */
 
 export async function POST(request: NextRequest) {
@@ -34,22 +30,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Insert into PostgreSQL
-    // const result = await db.insert(contactMessages).values({
-    //   name, email, phone, subject, message,
-    //   createdAt: new Date(),
-    // }).returning();
-
-    console.log("📬 API contact submission:", { name, email, subject });
+    const [result] = await db
+      .insert(contactMessages)
+      .values({
+        name,
+        email,
+        phone: phone || null,
+        subject: subject || null,
+        message,
+      })
+      .returning({ id: contactMessages.id });
 
     return NextResponse.json(
       {
         success: true,
         message: "Message received. We'll respond within 24 hours.",
+        messageId: result.id,
       },
       { status: 201 }
     );
-  } catch {
+  } catch (error) {
+    console.error("API contact error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error." },
       { status: 500 }

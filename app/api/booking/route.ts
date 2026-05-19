@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { db } from "@/lib/db";
+import { bookings } from "@/lib/db/schema";
 
 /**
  * POST /api/booking
  * ──────────────────
  * REST API route for appointment bookings.
- *
- * When PostgreSQL is connected:
- * 1. Import your DB client
- * 2. Insert into the `bookings` table
- * 3. Trigger confirmation email
+ * Inserts into PostgreSQL via Drizzle ORM.
  */
 
 export async function POST(request: NextRequest) {
@@ -22,6 +20,7 @@ export async function POST(request: NextRequest) {
     const errors: Record<string, string> = {};
     if (!date) errors.date = "Date is required.";
     if (!time) errors.time = "Time is required.";
+    if (!service) errors.service = "Service is required.";
     if (!firstName) errors.firstName = "First name is required.";
     if (!lastName) errors.lastName = "Last name is required.";
     if (!email || !email.includes("@"))
@@ -35,29 +34,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Insert into PostgreSQL
-    // const result = await db.insert(bookings).values({
-    //   date, time, service, firstName, lastName, email, phone, notes,
-    //   status: 'pending',
-    //   createdAt: new Date(),
-    // }).returning();
-
-    console.log("📅 API booking submission:", {
-      date,
-      time,
-      service,
-      firstName,
-      lastName,
-    });
+    const [result] = await db
+      .insert(bookings)
+      .values({
+        date,
+        time,
+        service,
+        firstName,
+        lastName,
+        email,
+        phone,
+        notes: notes || null,
+        status: "pending",
+      })
+      .returning({ id: bookings.id });
 
     return NextResponse.json(
       {
         success: true,
         message: "Booking request received. We'll confirm within 24 hours.",
+        bookingId: result.id,
       },
       { status: 201 }
     );
-  } catch {
+  } catch (error) {
+    console.error("API booking error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error." },
       { status: 500 }
