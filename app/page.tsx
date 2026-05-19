@@ -287,8 +287,8 @@ export default function HomePage() {
             Ready to start your wellness journey?
           </h2>
           <p className="text-neutral-400 max-w-xl mx-auto mb-10 text-lg">
-            Consult with our specialists to develop a targeted treatment plan for
-            your specific functional goals.
+            Consult with our specialists to develop a targeted treatment plan
+            for your specific functional goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

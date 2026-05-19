@@ -44,7 +44,7 @@ export default function Header() {
             alt={siteConfig.name}
             width={180}
             height={60}
-            className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-110"
             priority
           />
         </Link>
@@ -67,7 +67,7 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          <Button href="/booking" size="sm">
+          <Button href="/booking" size="sm" className="text-white">
             Book Now
           </Button>
         </nav>
