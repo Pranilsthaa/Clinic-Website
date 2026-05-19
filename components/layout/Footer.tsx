@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { siteConfig } from "@/lib/data/site";
 import Container from "@/components/ui/Container";
 import Divider from "@/components/ui/Divider";
@@ -13,17 +14,16 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-4" aria-label="Home">
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-bold tracking-wide uppercase font-[family-name:var(--font-heading)]">
-                  Clinical Spine
-                </span>
-                <span className="text-[10px] tracking-[0.2em] uppercase text-neutral-400">
-                  & Wellness
-                </span>
-              </div>
+              <Image
+                src={siteConfig.logo.dark}
+                alt={siteConfig.name}
+                width={160}
+                height={54}
+                className="h-14 w-auto object-contain"
+              />
             </Link>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
-              Precision care excellence. Advanced chiropractic and wellness
+              Precision care excellence. Advanced chiropractic and injury care
               services designed for your optimal health.
             </p>
           </div>

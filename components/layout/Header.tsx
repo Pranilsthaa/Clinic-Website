@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { siteConfig } from "@/lib/data/site";
@@ -35,32 +36,17 @@ export default function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-3 group"
+          className="flex items-center group"
           aria-label={`${siteConfig.name} – Home`}
         >
-          {/* Spine icon */}
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="transition-transform duration-300 group-hover:scale-110"
-            aria-hidden="true"
-          >
-            <path d="M12 2v4M12 18v4M12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM8 6a2 2 0 1 0 4 0M12 6a2 2 0 1 0 4 0M8 18a2 2 0 1 1 4 0M12 18a2 2 0 1 1 4 0" />
-          </svg>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-bold tracking-wide uppercase font-[family-name:var(--font-heading)]">
-              Clinical Spine
-            </span>
-            <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--color-secondary)]">
-              & Wellness
-            </span>
-          </div>
+          <Image
+            src={siteConfig.logo.light}
+            alt={siteConfig.name}
+            width={180}
+            height={60}
+            className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation */}
