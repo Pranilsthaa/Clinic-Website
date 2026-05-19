@@ -14,7 +14,7 @@ const initialState = {
 export default function ContactPage() {
   const [state, formAction, pending] = useActionState(
     submitContact,
-    initialState
+    initialState,
   );
 
   return (
@@ -306,7 +306,9 @@ export default function ContactPage() {
                       >
                         <option value="">Select a topic</option>
                         <option value="general">General Inquiry</option>
-                        <option value="appointment">Appointment Question</option>
+                        <option value="appointment">
+                          Appointment Question
+                        </option>
                         <option value="billing">Billing</option>
                         <option value="feedback">Feedback</option>
                         <option value="other">Other</option>

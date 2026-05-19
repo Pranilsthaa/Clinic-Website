@@ -139,7 +139,7 @@ export default function HomePage() {
                 Clinical precision meets compassionate care.
               </h2>
               <p className="text-[var(--color-foreground-muted)] mb-6 leading-relaxed">
-                At Clinical Spine & Wellness, we believe that effective
+                At DFW Spine & Injury Chiropractic, we believe that effective
                 treatment starts with a thorough understanding of your unique
                 biomechanics. Our multi-disciplinary team uses evidence-based
                 protocols to create personalized treatment plans that address
