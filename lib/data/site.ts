@@ -8,13 +8,18 @@
  */
 
 export const siteConfig = {
-  name: "Clinical Spine & Wellness",
+  name: "DFW Spine & Injury Chiropractic",
+  shortName: "DFW Spine & Injury",
   tagline: "Precision Care for Your Optimal Spine Health",
   description:
-    "Advanced chiropractic and wellness services designed to alleviate pain, restore mobility, and enhance your overall quality of life.",
-  url: "https://clinicalspine.com",
+    "Advanced chiropractic and injury care services designed to alleviate pain, restore mobility, and enhance your overall quality of life.",
+  url: "https://dfwspineinjury.com",
   phone: "+1 (555) 123-4567",
-  email: "reception@clinicalspine.com",
+  email: "reception@dfwspineinjury.com",
+  logo: {
+    light: "/images/logo-light.png",
+    dark: "/images/logo-dark.png",
+  },
   address: {
     street: "1200 Clinical Avenue, Suite 400",
     city: "Medical District",
@@ -28,8 +33,8 @@ export const siteConfig = {
     { day: "Sunday", time: "Closed" },
   ],
   social: {
-    linkedin: "https://linkedin.com/company/clinicalspine",
-    instagram: "https://instagram.com/clinicalspine",
+    linkedin: "https://linkedin.com/company/dfwspineinjury",
+    instagram: "https://instagram.com/dfwspineinjury",
   },
   navigation: [
     { label: "Home", href: "/" },
