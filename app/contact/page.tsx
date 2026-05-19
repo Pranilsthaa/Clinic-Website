@@ -9,6 +9,7 @@ const initialState = {
   success: false,
   message: "",
   errors: {} as Record<string, string[]>,
+  data: {} as Record<string, string>,
 };
 
 export default function ContactPage() {
@@ -246,6 +247,7 @@ export default function ContactPage() {
                         id="contact-name"
                         name="name"
                         required
+                        defaultValue={state.data?.name || ""}
                         className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none"
                       />
                       {state.errors?.name && (
@@ -267,6 +269,7 @@ export default function ContactPage() {
                         id="contact-email"
                         name="email"
                         required
+                        defaultValue={state.data?.email || ""}
                         className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none"
                       />
                       {state.errors?.email && (
@@ -287,6 +290,7 @@ export default function ContactPage() {
                         type="tel"
                         id="contact-phone"
                         name="phone"
+                        defaultValue={state.data?.phone || ""}
                         className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none"
                       />
                     </div>
@@ -302,6 +306,7 @@ export default function ContactPage() {
                         id="contact-subject"
                         name="subject"
                         required
+                        defaultValue={state.data?.subject || ""}
                         className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none appearance-none"
                       >
                         <option value="">Select a topic</option>
@@ -327,6 +332,7 @@ export default function ContactPage() {
                         name="message"
                         rows={5}
                         required
+                        defaultValue={state.data?.message || ""}
                         className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none resize-none"
                         placeholder="How can we help you?"
                       />

@@ -13,6 +13,7 @@ interface ContactState {
   success: boolean;
   message: string;
   errors: Record<string, string[]>;
+  data?: Record<string, string>;
 }
 
 export async function submitContact(
@@ -41,6 +42,7 @@ export async function submitContact(
       success: false,
       message: "Please correct the errors below.",
       errors,
+      data: rawData,
     };
   }
 

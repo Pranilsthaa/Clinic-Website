@@ -18,7 +18,7 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Change background when scrolled
       setScrolled(currentScrollY > 20);
 
@@ -29,7 +29,7 @@ export default function Header() {
       } else if (currentScrollY < lastScrollY) {
         setHidden(false);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -51,11 +51,9 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-[0_1px_0_0_var(--color-border)]"
-          : "bg-transparent"
-      } ${
-        hidden ? "-translate-y-full md:translate-y-0" : "translate-y-0"
-      }`}
+          ? "bg-white/80 backdrop-blur-md shadow-[0_1px_0_0_var(--color-border)]"
+          : "bg-white"
+      } ${hidden ? "-translate-y-full md:translate-y-0" : "translate-y-0"}`}
     >
       <Container className="flex items-center justify-between h-20">
         {/* Logo */}
@@ -128,7 +126,9 @@ export default function Header() {
       {/* Mobile Menu */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out bg-white shadow-xl ${
-          isOpen ? "max-h-96 border-b border-[var(--color-border)] opacity-100" : "max-h-0 opacity-0"
+          isOpen
+            ? "max-h-96 border-b border-[var(--color-border)] opacity-100"
+            : "max-h-0 opacity-0"
         }`}
       >
         <Container className="py-6 flex flex-col gap-4">
