@@ -12,31 +12,56 @@ export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Change background when scrolled
+      setScrolled(currentScrollY > 20);
+
+      // Hide on scroll down, show on scroll up (mobile focus)
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setHidden(true);
+        setIsOpen(false); // Close menu when scrolling down
+      } else if (currentScrollY < lastScrollY) {
+        setHidden(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
+  const toggleMenu = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault(); // Prevent double firing on touch devices
+    setIsOpen(!isOpen);
+  };
+
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${
         scrolled
           ? "bg-white/95 backdrop-blur-md shadow-[0_1px_0_0_var(--color-border)]"
           : "bg-transparent"
+      } ${
+        hidden ? "-translate-y-full md:translate-y-0" : "translate-y-0"
       }`}
     >
       <Container className="flex items-center justify-between h-20">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center group"
+          className="flex items-center group relative z-50"
           aria-label={`${siteConfig.name} – Home`}
         >
           <Image
@@ -74,24 +99,27 @@ export default function Header() {
 
         {/* Mobile Hamburger */}
         <button
-          className="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 cursor-pointer"
-          onClick={() => setIsOpen(!isOpen)}
+          type="button"
+          className="md:hidden relative z-[60] flex flex-col justify-center items-center w-12 h-12 gap-[6px] cursor-pointer touch-none bg-transparent border-none outline-none"
+          onClick={toggleMenu}
+          onTouchEnd={toggleMenu}
           aria-label={isOpen ? "Close menu" : "Open menu"}
           aria-expanded={isOpen}
+          style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <span
-            className={`block w-6 h-[2px] bg-black transition-all duration-300 origin-center ${
-              isOpen ? "rotate-45 translate-y-[5px]" : ""
+            className={`block w-7 h-[2px] bg-black transition-all duration-300 origin-center pointer-events-none ${
+              isOpen ? "rotate-45 translate-y-[8px]" : ""
             }`}
           />
           <span
-            className={`block w-6 h-[2px] bg-black transition-all duration-300 ${
+            className={`block w-7 h-[2px] bg-black transition-all duration-300 pointer-events-none ${
               isOpen ? "opacity-0 scale-0" : ""
             }`}
           />
           <span
-            className={`block w-6 h-[2px] bg-black transition-all duration-300 origin-center ${
-              isOpen ? "-rotate-45 -translate-y-[5px]" : ""
+            className={`block w-7 h-[2px] bg-black transition-all duration-300 origin-center pointer-events-none ${
+              isOpen ? "-rotate-45 -translate-y-[8px]" : ""
             }`}
           />
         </button>
@@ -99,8 +127,8 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 bg-white ${
-          isOpen ? "max-h-96 border-b border-[var(--color-border)]" : "max-h-0"
+        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out bg-white shadow-xl ${
+          isOpen ? "max-h-96 border-b border-[var(--color-border)] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <Container className="py-6 flex flex-col gap-4">
@@ -108,7 +136,7 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-base font-medium tracking-wide uppercase py-2 border-b border-[var(--color-border)] transition-colors ${
+              className={`block text-base font-medium tracking-wide uppercase py-3 border-b border-[var(--color-border)] transition-colors ${
                 pathname === link.href
                   ? "text-black"
                   : "text-[var(--color-secondary)]"
@@ -117,7 +145,7 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          <Button href="/booking" size="md" className="mt-2 w-full">
+          <Button href="/booking" size="md" className="mt-4 w-full">
             Book Now
           </Button>
         </Container>
