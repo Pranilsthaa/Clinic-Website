@@ -17,9 +17,9 @@ export default function Footer() {
               <Image
                 src={siteConfig.logo.dark}
                 alt={siteConfig.name}
-                width={160}
+                width={350}
                 height={54}
-                className="h-14 w-auto object-contain"
+                className="h-36 w-auto object-contain"
               />
             </Link>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
@@ -127,7 +127,10 @@ export default function Footer() {
             © {currentYear} {siteConfig.name}. Precision Care Excellence.
           </p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-white transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-white transition-colors"
+            >
               Privacy Policy
             </Link>
             <Link href="/terms" className="hover:text-white transition-colors">

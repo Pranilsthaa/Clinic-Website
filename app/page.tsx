@@ -187,7 +187,7 @@ export default function HomePage() {
             className="mb-16"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {/* Location */}
             <div className="border border-[var(--color-border)] rounded-lg p-8 text-center">
               <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center mx-auto mb-4">
@@ -276,6 +276,22 @@ export default function HomePage() {
                 {siteConfig.email}
               </p>
             </div>
+          </div>
+
+          {/* Map Embed */}
+          <div className="w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden border border-[var(--color-border)]">
+            <iframe
+              title="Clinic Location Map"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                `${siteConfig.name}, ${siteConfig.address.street}, ${siteConfig.address.city}, ${siteConfig.address.state} ${siteConfig.address.zip}`,
+              )}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
         </Container>
       </section>

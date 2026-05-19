@@ -41,15 +41,13 @@ export default function Button({
 }: ButtonProps) {
   const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${
     disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-  }`;
+  } ${className}`;
 
   if (href) {
     return (
-      <span className={className}>
-        <Link href={href} className={classes} aria-label={ariaLabel}>
-          {children}
-        </Link>
-      </span>
+      <Link href={href} className={classes} aria-label={ariaLabel}>
+        {children}
+      </Link>
     );
   }
 
