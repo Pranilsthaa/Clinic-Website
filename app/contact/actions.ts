@@ -2,10 +2,12 @@
 
 /**
  * Contact form server action.
- * ─────────────────────────────
- * When PostgreSQL is connected, replace with a database INSERT
- * and optionally trigger an email notification.
+ * ──────────────────────────────
+ * Validates form data and inserts into PostgreSQL via Drizzle ORM.
  */
+
+import { db } from "@/lib/db";
+import { contactMessages } from "@/lib/db/schema";
 
 interface ContactState {
   success: boolean;
@@ -25,7 +27,7 @@ export async function submitContact(
     message: formData.get("message") as string,
   };
 
-  // Basic server-side validation
+  // Server-side validation
   const errors: Record<string, string[]> = {};
 
   if (!rawData.name) errors.name = ["Name is required."];
@@ -42,16 +44,27 @@ export async function submitContact(
     };
   }
 
-  // TODO: Insert into PostgreSQL
-  // await db.insert(contactMessages).values(rawData);
-  // TODO: Send email notification
+  try {
+    await db.insert(contactMessages).values({
+      name: rawData.name,
+      email: rawData.email,
+      phone: rawData.phone || null,
+      subject: rawData.subject || null,
+      message: rawData.message,
+    });
 
-  console.log("✉️ New contact message:", rawData);
-
-  return {
-    success: true,
-    message:
-      "Thank you for reaching out! We've received your message and will respond within 24 business hours.",
-    errors: {},
-  };
+    return {
+      success: true,
+      message:
+        "Thank you for reaching out! We've received your message and will respond within 24 business hours.",
+      errors: {},
+    };
+  } catch (error) {
+    console.error("Contact submission error:", error);
+    return {
+      success: false,
+      message: "Something went wrong. Please try again later.",
+      errors: {},
+    };
+  }
 }

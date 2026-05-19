@@ -2,10 +2,12 @@
 
 /**
  * Booking form server action.
- * ─────────────────────────────
- * Currently validates and logs. When PostgreSQL is connected,
- * replace the log with a database INSERT via your ORM (Drizzle, Prisma, etc.).
+ * ──────────────────────────────
+ * Validates form data and inserts into PostgreSQL via Drizzle ORM.
  */
+
+import { db } from "@/lib/db";
+import { bookings } from "@/lib/db/schema";
 
 interface BookingState {
   success: boolean;
@@ -28,11 +30,12 @@ export async function submitBooking(
     notes: formData.get("notes") as string,
   };
 
-  // Basic server-side validation
+  // Server-side validation
   const errors: Record<string, string[]> = {};
 
   if (!rawData.date) errors.date = ["Please select a date."];
   if (!rawData.time) errors.time = ["Please select a time."];
+  if (!rawData.service) errors.service = ["Please select a service."];
   if (!rawData.firstName)
     errors.firstName = ["First name is required."];
   if (!rawData.lastName)
@@ -49,15 +52,31 @@ export async function submitBooking(
     };
   }
 
-  // TODO: Insert into PostgreSQL
-  // await db.insert(bookings).values(rawData);
+  try {
+    await db.insert(bookings).values({
+      firstName: rawData.firstName,
+      lastName: rawData.lastName,
+      email: rawData.email,
+      phone: rawData.phone,
+      date: rawData.date,
+      time: rawData.time,
+      service: rawData.service,
+      notes: rawData.notes || null,
+      status: "pending",
+    });
 
-  console.log("📋 New booking request:", rawData);
-
-  return {
-    success: true,
-    message:
-      "Thank you! Your appointment request has been received. Our clinic coordinator will contact you within 24 hours to confirm your booking.",
-    errors: {},
-  };
+    return {
+      success: true,
+      message:
+        "Thank you! Your appointment request has been received. Our clinic coordinator will contact you within 24 hours to confirm your booking.",
+      errors: {},
+    };
+  } catch (error) {
+    console.error("Booking submission error:", error);
+    return {
+      success: false,
+      message: "Something went wrong. Please try again later.",
+      errors: {},
+    };
+  }
 }
