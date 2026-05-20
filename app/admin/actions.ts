@@ -87,68 +87,85 @@ export async function logoutAction() {
 }
 
 export async function updateBookingStatus(id: string, newStatus: "confirmed" | "cancelled") {
-  const session = await getSession();
-  if (!session) {
-    throw new Error("Unauthorized");
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const bookingRecords = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id))
+      .limit(1);
+
+    if (bookingRecords.length === 0) return { success: false, message: "Booking not found" };
+
+    const booking = bookingRecords[0];
+
+    await db
+      .update(bookings)
+      .set({ status: newStatus, updatedAt: new Date() })
+      .where(eq(bookings.id, id));
+
+    if (newStatus === "confirmed") {
+      await sendEmail({
+        to: booking.email,
+        subject: "Appointment Confirmed",
+        text: `Hi ${booking.firstName},\n\nYour appointment for ${booking.service} on ${booking.date} at ${booking.time} has been confirmed. We look forward to seeing you.\n\nBest regards,\nClinic Team`,
+      });
+    } else if (newStatus === "cancelled") {
+      await sendEmail({
+        to: booking.email,
+        subject: "Appointment Cancelled",
+        text: `Hi ${booking.firstName},\n\nWe regret to inform you that your appointment request for ${booking.service} on ${booking.date} at ${booking.time} has been cancelled.\n\nBest regards,\nClinic Team`,
+      });
+    }
+
+    revalidatePath("/admin");
+    return { success: true, message: `Booking has been ${newStatus === "confirmed" ? "approved" : "rejected"}.` };
+  } catch (error) {
+    console.error("Error updating booking status:", error);
+    return { success: false, message: "An unexpected error occurred." };
   }
-
-  // Find the booking
-  const bookingRecords = await db
-    .select()
-    .from(bookings)
-    .where(eq(bookings.id, id))
-    .limit(1);
-
-  if (bookingRecords.length === 0) {
-    throw new Error("Booking not found");
-  }
-
-  const booking = bookingRecords[0];
-
-  // Update status
-  await db
-    .update(bookings)
-    .set({ status: newStatus, updatedAt: new Date() })
-    .where(eq(bookings.id, id));
-
-  // Send email to client
-  if (newStatus === "confirmed") {
-    await sendEmail({
-      to: booking.email,
-      subject: "Appointment Confirmed",
-      text: `Hi ${booking.firstName},\n\nYour appointment for ${booking.service} on ${booking.date} at ${booking.time} has been confirmed. We look forward to seeing you.\n\nBest regards,\nClinic Team`,
-    });
-  } else if (newStatus === "cancelled") {
-    await sendEmail({
-      to: booking.email,
-      subject: "Appointment Cancelled",
-      text: `Hi ${booking.firstName},\n\nWe regret to inform you that your appointment request for ${booking.service} on ${booking.date} at ${booking.time} has been cancelled.\n\nBest regards,\nClinic Team`,
-    });
-  }
-
-  revalidatePath("/admin");
 }
 
 export async function addTimeSlot(time: string, label: string) {
-  const session = await getSession();
-  if (!session) throw new Error("Unauthorized");
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, message: "Unauthorized" };
 
-  await db.insert(timeSlots).values({ time, label, isActive: true });
-  revalidatePath("/admin");
+    await db.insert(timeSlots).values({ time, label, isActive: true });
+    revalidatePath("/admin");
+    return { success: true, message: "Time slot added." };
+  } catch (error) {
+    console.error("Error adding time slot:", error);
+    return { success: false, message: "Failed to add time slot." };
+  }
 }
 
 export async function toggleTimeSlotState(id: string, currentIsActive: boolean) {
-  const session = await getSession();
-  if (!session) throw new Error("Unauthorized");
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, message: "Unauthorized" };
 
-  await db.update(timeSlots).set({ isActive: !currentIsActive }).where(eq(timeSlots.id, id));
-  revalidatePath("/admin");
+    await db.update(timeSlots).set({ isActive: !currentIsActive }).where(eq(timeSlots.id, id));
+    revalidatePath("/admin");
+    return { success: true, message: `Time slot ${currentIsActive ? "disabled" : "enabled"}.` };
+  } catch (error) {
+    console.error("Error toggling time slot:", error);
+    return { success: false, message: "Failed to update time slot." };
+  }
 }
 
 export async function deleteTimeSlot(id: string) {
-  const session = await getSession();
-  if (!session) throw new Error("Unauthorized");
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, message: "Unauthorized" };
 
-  await db.delete(timeSlots).where(eq(timeSlots.id, id));
-  revalidatePath("/admin");
+    await db.delete(timeSlots).where(eq(timeSlots.id, id));
+    revalidatePath("/admin");
+    return { success: true, message: "Time slot deleted." };
+  } catch (error) {
+    console.error("Error deleting time slot:", error);
+    return { success: false, message: "Failed to delete time slot." };
+  }
 }

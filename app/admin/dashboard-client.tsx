@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Toaster, toast } from 'sonner';
+import { useRouter } from "next/navigation";
 import { logoutAction, updateBookingStatus, addTimeSlot, toggleTimeSlotState, deleteTimeSlot } from "./actions";
 
 interface DashboardProps {
@@ -40,9 +42,16 @@ interface DashboardProps {
     isActive: boolean;
     createdAt: string;
   }>;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    limit: number;
+  };
+  initialTab?: string;
 }
 
-type Tab = "overview" | "appointments" | "messages" | "timings";
+type Tab = "overview" | "bookings" | "messages" | "timings";
 
 export default function AdminDashboardClient({
   username,
@@ -50,16 +59,35 @@ export default function AdminDashboardClient({
   bookings,
   messages,
   timeSlots,
+  pagination,
+  initialTab,
 }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<Tab>((initialTab as Tab) || "overview");
   const [isPending, startTransition] = useTransition();
 
   const [newTime, setNewTime] = useState("");
   const [newLabel, setNewLabel] = useState("");
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    newStatus: "confirmed" | "cancelled" | null;
+  }>({ isOpen: false, id: null, newStatus: null });
 
   const handleUpdateStatus = (id: string, newStatus: "confirmed" | "cancelled") => {
     startTransition(async () => {
-      await updateBookingStatus(id, newStatus);
+      try {
+        const res = await updateBookingStatus(id, newStatus);
+        if (res.success) {
+          toast.success(res.message);
+          setConfirmModal({ isOpen: false, id: null, newStatus: null });
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred.");
+      }
     });
   };
 
@@ -67,22 +95,49 @@ export default function AdminDashboardClient({
     e.preventDefault();
     if (!newTime || !newLabel) return;
     startTransition(async () => {
-      await addTimeSlot(newTime, newLabel);
-      setNewTime("");
-      setNewLabel("");
+      try {
+        const res = await addTimeSlot(newTime, newLabel);
+        if (res.success) {
+          toast.success(res.message);
+          setNewTime("");
+          setNewLabel("");
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred.");
+      }
     });
   };
 
   const handleToggleTimeSlot = (id: string, currentIsActive: boolean) => {
     startTransition(async () => {
-      await toggleTimeSlotState(id, currentIsActive);
+      try {
+        const res = await toggleTimeSlotState(id, currentIsActive);
+        if (res.success) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred.");
+      }
     });
   };
 
   const handleDeleteTimeSlot = (id: string) => {
     if (!window.confirm("Are you sure you want to delete this time slot?")) return;
     startTransition(async () => {
-      await deleteTimeSlot(id);
+      try {
+        const res = await deleteTimeSlot(id);
+        if (res.success) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred.");
+      }
     });
   };
 
@@ -132,7 +187,14 @@ export default function AdminDashboardClient({
           {(["overview", "bookings", "messages", "timings"] as Tab[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                if (tab === "bookings") {
+                  router.push(`?tab=bookings&page=1`);
+                } else {
+                  router.push(`?tab=${tab}`);
+                }
+              }}
               className={`px-5 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${activeTab === tab
                 ? "bg-white text-neutral-900 shadow-sm"
                 : "text-neutral-500 hover:text-neutral-700"
@@ -277,15 +339,15 @@ export default function AdminDashboardClient({
         )}
 
         {/* Bookings Table */}
-        {activeTab === "appointments" && (
+        {activeTab === "bookings" && (
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 mb-6">
-              Appointments
+              Bookings
             </h1>
             <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
               {bookings.length === 0 ? (
                 <p className="p-8 text-center text-neutral-500">
-                  No appointments found.
+                  No bookings found.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
@@ -348,14 +410,14 @@ export default function AdminDashboardClient({
                             {b.status === "pending" && (
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => handleUpdateStatus(b.id, "confirmed")}
+                                  onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "confirmed" })}
                                   disabled={isPending}
                                   className="text-xs font-medium bg-black text-white px-3 py-1.5 rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors"
                                 >
                                   Approve
                                 </button>
                                 <button
-                                  onClick={() => handleUpdateStatus(b.id, "cancelled")}
+                                  onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "cancelled" })}
                                   disabled={isPending}
                                   className="text-xs font-medium border border-red-200 text-red-600 px-3 py-1.5 rounded hover:bg-red-50 disabled:opacity-50 transition-colors"
                                 >
@@ -368,6 +430,68 @@ export default function AdminDashboardClient({
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+              
+              {/* Pagination UI */}
+              {pagination.totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-neutral-200 bg-neutral-50 text-sm text-neutral-600">
+                  <div>
+                    Showing <span className="font-semibold text-neutral-900">{((pagination.currentPage - 1) * pagination.limit) + 1}</span> to{" "}
+                    <span className="font-semibold text-neutral-900">
+                      {Math.min(pagination.currentPage * pagination.limit, pagination.totalItems)}
+                    </span>{" "}
+                    of <span className="font-semibold text-neutral-900">{pagination.totalItems}</span> bookings
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => router.push(`?tab=bookings&page=${pagination.currentPage - 1}`)}
+                      disabled={pagination.currentPage <= 1 || isPending}
+                      className="px-3 py-1.5 rounded border border-neutral-300 bg-white font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:hover:bg-white transition-colors cursor-pointer text-xs"
+                    >
+                      Previous
+                    </button>
+                    
+                    {/* Page Numbers */}
+                    {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => {
+                      const isNearCurrent = Math.abs(p - pagination.currentPage) <= 1;
+                      const isFirstOrLast = p === 1 || p === pagination.totalPages;
+                      
+                      if (!isNearCurrent && !isFirstOrLast) {
+                        if (p === 2 || p === pagination.totalPages - 1) {
+                          return (
+                            <span key={`ellipsis-${p}`} className="px-2 text-neutral-400">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => router.push(`?tab=bookings&page=${p}`)}
+                          disabled={p === pagination.currentPage || isPending}
+                          className={`px-3 py-1.5 rounded border text-xs font-semibold transition-colors cursor-pointer ${
+                            p === pagination.currentPage
+                              ? "bg-black border-black text-white"
+                              : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => router.push(`?tab=bookings&page=${pagination.currentPage + 1}`)}
+                      disabled={pagination.currentPage >= pagination.totalPages || isPending}
+                      className="px-3 py-1.5 rounded border border-neutral-300 bg-white font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:hover:bg-white transition-colors cursor-pointer text-xs"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -523,6 +647,46 @@ export default function AdminDashboardClient({
           </div>
         )}
       </div>
+
+      {/* Toaster */}
+      <Toaster position="top-right" richColors />
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-xl">
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">
+              Confirm {confirmModal.newStatus === "confirmed" ? "Approval" : "Rejection"}
+            </h2>
+            <p className="text-neutral-600 mb-6 text-sm">
+              Are you sure you want to {confirmModal.newStatus === "confirmed" ? "approve" : "reject"} this booking? 
+              An email notification will be sent to the patient automatically.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                disabled={isPending}
+                onClick={() => setConfirmModal({ isOpen: false, id: null, newStatus: null })}
+                className="px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 rounded transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isPending}
+                onClick={() => {
+                  if (confirmModal.id && confirmModal.newStatus) {
+                    handleUpdateStatus(confirmModal.id, confirmModal.newStatus);
+                  }
+                }}
+                className={`px-4 py-2 text-sm font-medium text-white rounded transition-colors disabled:opacity-50 cursor-pointer ${
+                  confirmModal.newStatus === "confirmed" ? "bg-black hover:bg-neutral-800" : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {isPending ? "Processing..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
