@@ -3,11 +3,13 @@
 /**
  * Booking form server action.
  * ──────────────────────────────
- * Validates form data and inserts into PostgreSQL via Drizzle ORM.
+ * Validates form data and inserts into PostgreSQL via Drizzle ORM,
+ * then sends an email notification.
  */
 
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/db/schema";
+import { sendEmail, sendNotificationEmail } from "@/lib/email";
 
 interface BookingState {
   success: boolean;
@@ -63,6 +65,19 @@ export async function submitBooking(
       service: rawData.service,
       notes: rawData.notes || null,
       status: "pending",
+    });
+
+    // Send email to admin
+    await sendNotificationEmail(
+      `New Booking Request: ${rawData.service}`,
+      `You have received a new booking request.\n\nName: ${rawData.firstName} ${rawData.lastName}\nEmail: ${rawData.email}\nPhone: ${rawData.phone}\nService: ${rawData.service}\nDate: ${rawData.date}\nTime: ${rawData.time}\nNotes: ${rawData.notes || "None"}`
+    );
+
+    // Send confirmation to user
+    await sendEmail({
+      to: rawData.email,
+      subject: "Booking Request Received",
+      text: `Hi ${rawData.firstName},\n\nThank you! Your appointment request for ${rawData.service} on ${rawData.date} at ${rawData.time} has been received. Our clinic coordinator will contact you within 24 hours to confirm your booking.\n\nBest regards,\nClinic Team`,
     });
 
     return {

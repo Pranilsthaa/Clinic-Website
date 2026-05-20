@@ -3,11 +3,13 @@
 /**
  * Contact form server action.
  * ──────────────────────────────
- * Validates form data and inserts into PostgreSQL via Drizzle ORM.
+ * Validates form data and inserts into PostgreSQL via Drizzle ORM,
+ * then sends an email notification.
  */
 
 import { db } from "@/lib/db";
 import { contactMessages } from "@/lib/db/schema";
+import { sendEmail, sendNotificationEmail } from "@/lib/email";
 
 interface ContactState {
   success: boolean;
@@ -53,6 +55,19 @@ export async function submitContact(
       phone: rawData.phone || null,
       subject: rawData.subject || null,
       message: rawData.message,
+    });
+
+    // Send email to admin
+    await sendNotificationEmail(
+      `New Contact Message: ${rawData.subject || "No Subject"}`,
+      `You have received a new contact message.\n\nName: ${rawData.name}\nEmail: ${rawData.email}\nPhone: ${rawData.phone || "N/A"}\nSubject: ${rawData.subject || "N/A"}\n\nMessage:\n${rawData.message}`
+    );
+
+    // Send confirmation to user
+    await sendEmail({
+      to: rawData.email,
+      subject: "We received your message",
+      text: `Hi ${rawData.name},\n\nThank you for reaching out! We've received your message and will respond within 24 business hours.\n\nBest regards,\nClinic Team`,
     });
 
     return {
