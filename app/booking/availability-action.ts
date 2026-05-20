@@ -1,8 +1,22 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { bookings } from "@/lib/db/schema";
-import { eq, inArray, and } from "drizzle-orm";
+import { bookings, timeSlots } from "@/lib/db/schema";
+import { eq, inArray, and, asc } from "drizzle-orm";
+
+export async function getAvailableTimeSlots() {
+  try {
+    const slots = await db
+      .select({ val: timeSlots.time, label: timeSlots.label })
+      .from(timeSlots)
+      .where(eq(timeSlots.isActive, true))
+      .orderBy(asc(timeSlots.time));
+    return slots;
+  } catch (error) {
+    console.error("Error fetching time slots:", error);
+    return [];
+  }
+}
 
 export async function getUnavailableTimes(date: string): Promise<string[]> {
   if (!date) return [];

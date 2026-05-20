@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { logoutAction, updateBookingStatus } from "./actions";
+import { logoutAction, updateBookingStatus, addTimeSlot, toggleTimeSlotState, deleteTimeSlot } from "./actions";
 
 interface DashboardProps {
   username: string;
@@ -33,22 +33,56 @@ interface DashboardProps {
     message: string;
     createdAt: string;
   }>;
+  timeSlots: Array<{
+    id: string;
+    time: string;
+    label: string;
+    isActive: boolean;
+    createdAt: string;
+  }>;
 }
 
-type Tab = "overview" | "bookings" | "messages";
+type Tab = "overview" | "appointments" | "messages" | "timings";
 
 export default function AdminDashboardClient({
   username,
   stats,
   bookings,
   messages,
+  timeSlots,
 }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isPending, startTransition] = useTransition();
 
+  const [newTime, setNewTime] = useState("");
+  const [newLabel, setNewLabel] = useState("");
+
   const handleUpdateStatus = (id: string, newStatus: "confirmed" | "cancelled") => {
     startTransition(async () => {
       await updateBookingStatus(id, newStatus);
+    });
+  };
+
+  const handleAddTimeSlot = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTime || !newLabel) return;
+    startTransition(async () => {
+      await addTimeSlot(newTime, newLabel);
+      setNewTime("");
+      setNewLabel("");
+    });
+  };
+
+  const handleToggleTimeSlot = (id: string, currentIsActive: boolean) => {
+    startTransition(async () => {
+      await toggleTimeSlotState(id, currentIsActive);
+    });
+  };
+
+  const handleDeleteTimeSlot = (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this time slot?")) return;
+    startTransition(async () => {
+      await deleteTimeSlot(id);
     });
   };
 
@@ -95,15 +129,14 @@ export default function AdminDashboardClient({
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tab Navigation */}
         <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit mb-8">
-          {(["overview", "bookings", "messages"] as Tab[]).map((tab) => (
+          {(["overview", "bookings", "messages", "timings"] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${
-                activeTab === tab
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-700"
-              }`}
+              className={`px-5 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${activeTab === tab
+                ? "bg-white text-neutral-900 shadow-sm"
+                : "text-neutral-500 hover:text-neutral-700"
+                }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
@@ -244,15 +277,15 @@ export default function AdminDashboardClient({
         )}
 
         {/* Bookings Table */}
-        {activeTab === "bookings" && (
+        {activeTab === "appointments" && (
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 mb-6">
-              Bookings
+              Appointments
             </h1>
             <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
               {bookings.length === 0 ? (
                 <p className="p-8 text-center text-neutral-500">
-                  No bookings found.
+                  No appointments found.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
@@ -404,6 +437,91 @@ export default function AdminDashboardClient({
             </div>
           </div>
         )}
+
+        {/* Timings Table */}
+        {activeTab === "timings" && (
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-6">
+              Manage Time Slots
+            </h1>
+
+            <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-8">
+              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Add New Time Slot</h2>
+              <form onSubmit={handleAddTimeSlot} className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="w-full sm:w-1/3">
+                  <label className="block text-xs font-semibold tracking-[0.05em] uppercase text-[var(--color-foreground-muted)] mb-2">Time (24h or AM/PM)</label>
+                  <input type="time" required value={newTime} onChange={e => setNewTime(e.target.value)} className="w-full border border-neutral-300 rounded px-3 py-2 text-sm focus:border-black focus:outline-none" />
+                </div>
+                <div className="w-full sm:w-1/3">
+                  <label className="block text-xs font-semibold tracking-[0.05em] uppercase text-[var(--color-foreground-muted)] mb-2">Label (e.g. 8:00 AM)</label>
+                  <input type="text" required value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="e.g. 8:00 AM" className="w-full border border-neutral-300 rounded px-3 py-2 text-sm focus:border-black focus:outline-none" />
+                </div>
+                <button type="submit" disabled={isPending} className="bg-black text-white text-sm font-semibold px-6 py-2 h-[38px] rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors">
+                  Add Slot
+                </button>
+              </form>
+            </div>
+
+            <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+              {timeSlots.length === 0 ? (
+                <p className="p-8 text-center text-neutral-500">
+                  No time slots configured.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-200 bg-neutral-50">
+                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                          Time Value
+                        </th>
+                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                          Label
+                        </th>
+                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                          Status
+                        </th>
+                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100">
+                      {timeSlots.map((t) => (
+                        <tr
+                          key={t.id}
+                          className="hover:bg-neutral-50 transition-colors"
+                        >
+                          <td className="px-5 py-4 font-medium text-neutral-900">
+                            {t.time}
+                          </td>
+                          <td className="px-5 py-4 text-neutral-700">
+                            {t.label}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full border ${t.isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-neutral-100 text-neutral-700 border-neutral-200"}`}>
+                              {t.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleToggleTimeSlot(t.id, t.isActive)} disabled={isPending} className="text-xs font-medium border border-neutral-300 px-3 py-1.5 rounded hover:bg-neutral-100 disabled:opacity-50 transition-colors">
+                                {t.isActive ? "Disable" : "Enable"}
+                              </button>
+                              <button onClick={() => handleDeleteTimeSlot(t.id)} disabled={isPending} className="text-xs font-medium border border-red-200 text-red-600 px-3 py-1.5 rounded hover:bg-red-50 disabled:opacity-50 transition-colors">
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -424,11 +542,10 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-6 ${
-        highlight
-          ? "bg-amber-50 border-amber-200"
-          : "bg-white border-neutral-200"
-      }`}
+      className={`rounded-xl border p-6 ${highlight
+        ? "bg-amber-50 border-amber-200"
+        : "bg-white border-neutral-200"
+        }`}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-neutral-500">{label}</span>
@@ -451,9 +568,8 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full border ${
-        styles[status] || "bg-neutral-100 text-neutral-700 border-neutral-200"
-      }`}
+      className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full border ${styles[status] || "bg-neutral-100 text-neutral-700 border-neutral-200"
+        }`}
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>

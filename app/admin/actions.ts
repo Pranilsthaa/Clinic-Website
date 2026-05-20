@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { adminUsers, bookings } from "@/lib/db/schema";
+import { adminUsers, bookings, timeSlots } from "@/lib/db/schema";
 import { createSession, deleteSession, getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -126,5 +126,29 @@ export async function updateBookingStatus(id: string, newStatus: "confirmed" | "
     });
   }
 
+  revalidatePath("/admin");
+}
+
+export async function addTimeSlot(time: string, label: string) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  await db.insert(timeSlots).values({ time, label, isActive: true });
+  revalidatePath("/admin");
+}
+
+export async function toggleTimeSlotState(id: string, currentIsActive: boolean) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  await db.update(timeSlots).set({ isActive: !currentIsActive }).where(eq(timeSlots.id, id));
+  revalidatePath("/admin");
+}
+
+export async function deleteTimeSlot(id: string) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  await db.delete(timeSlots).where(eq(timeSlots.id, id));
   revalidatePath("/admin");
 }

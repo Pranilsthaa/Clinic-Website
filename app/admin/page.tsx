@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { bookings, contactMessages } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { bookings, contactMessages, timeSlots } from "@/lib/db/schema";
+import { desc, asc } from "drizzle-orm";
 import AdminDashboardClient from "./dashboard-client";
 
 export default async function AdminDashboardPage() {
@@ -21,6 +21,11 @@ export default async function AdminDashboardPage() {
     .from(contactMessages)
     .orderBy(desc(contactMessages.createdAt))
     .limit(20);
+
+  const allTimeSlots = await db
+    .select()
+    .from(timeSlots)
+    .orderBy(asc(timeSlots.time));
 
   // Stats
   const totalBookings = recentBookings.length;
@@ -41,6 +46,10 @@ export default async function AdminDashboardPage() {
       messages={recentMessages.map((m) => ({
         ...m,
         createdAt: m.createdAt.toISOString(),
+      }))}
+      timeSlots={allTimeSlots.map(t => ({
+        ...t,
+        createdAt: t.createdAt.toISOString(),
       }))}
     />
   );

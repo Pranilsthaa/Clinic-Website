@@ -72,3 +72,17 @@ export const adminUsers = pgTable("admin_users", {
 
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type NewAdminUser = typeof adminUsers.$inferInsert;
+
+// ─── Time Slots ─────────────────────────────────────────────
+export const timeSlots = pgTable("time_slots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  time: varchar("time", { length: 20 }).notNull(),
+  label: varchar("label", { length: 50 }).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type TimeSlot = typeof timeSlots.$inferSelect;
+export type NewTimeSlot = typeof timeSlots.$inferInsert;

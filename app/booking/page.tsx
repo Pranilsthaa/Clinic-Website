@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import Container from "@/components/ui/Container";
 import { siteConfig } from "@/lib/data/site";
 import { services } from "@/lib/data/services";
 import { submitBooking } from "./actions";
-import { getUnavailableTimes } from "./availability-action";
+import { getUnavailableTimes, getAvailableTimeSlots } from "./availability-action";
 
 const initialState = {
   success: false,
@@ -19,16 +19,32 @@ export default function BookingPage() {
     initialState
   );
 
+  const [availableSlots, setAvailableSlots] = useState<Array<{ val: string; label: string }>>([]);
+  const [isFetchingAvailableSlots, setIsFetchingAvailableSlots] = useState(true);
   const [unavailableTimes, setUnavailableTimes] = useState<string[]>([]);
   const [isFetchingTimes, setIsFetchingTimes] = useState(false);
 
+  useEffect(() => {
+    async function fetchSlots() {
+      try {
+        const slots = await getAvailableTimeSlots();
+        console.log('hello', slots)
+        setAvailableSlots(slots);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsFetchingAvailableSlots(false);
+      }
+    }
+    fetchSlots();
+  }, []);
   const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     if (!selectedDate) {
       setUnavailableTimes([]);
       return;
     }
-    
+
     setIsFetchingTimes(true);
     try {
       const times = await getUnavailableTimes(selectedDate);
@@ -154,22 +170,19 @@ export default function BookingPage() {
                           id="booking-time"
                           name="time"
                           required
-                          disabled={isFetchingTimes}
+                          disabled={isFetchingAvailableSlots || isFetchingTimes || availableSlots.length === 0}
                           className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none appearance-none disabled:opacity-50"
                         >
-                          <option value="">{isFetchingTimes ? "Loading times..." : "Select a time"}</option>
-                          {[
-                            { val: "08:00", label: "8:00 AM" },
-                            { val: "09:00", label: "9:00 AM" },
-                            { val: "10:00", label: "10:00 AM" },
-                            { val: "11:00", label: "11:00 AM" },
-                            { val: "12:00", label: "12:00 PM" },
-                            { val: "13:00", label: "1:00 PM" },
-                            { val: "14:00", label: "2:00 PM" },
-                            { val: "15:00", label: "3:00 PM" },
-                            { val: "16:00", label: "4:00 PM" },
-                            { val: "17:00", label: "5:00 PM" },
-                          ].map(({ val, label }) => {
+                          <option value="">
+                            {isFetchingAvailableSlots
+                              ? "Loading times..."
+                              : availableSlots.length === 0
+                                ? "No times configured"
+                                : isFetchingTimes
+                                  ? "Checking availability..."
+                                  : "Select a time"}
+                          </option>
+                          {availableSlots.map(({ val, label }) => {
                             const isBooked = unavailableTimes.includes(val);
                             return (
                               <option key={val} value={val} disabled={isBooked} className={isBooked ? "text-neutral-400" : ""}>
