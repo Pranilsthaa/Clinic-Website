@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { logoutAction } from "./actions";
+import { useState, useTransition } from "react";
+import { logoutAction, updateBookingStatus } from "./actions";
 
 interface DashboardProps {
   username: string;
@@ -44,6 +44,13 @@ export default function AdminDashboardClient({
   messages,
 }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [isPending, startTransition] = useTransition();
+
+  const handleUpdateStatus = (id: string, newStatus: "confirmed" | "cancelled") => {
+    startTransition(async () => {
+      await updateBookingStatus(id, newStatus);
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-neutral-50 overflow-auto">
@@ -270,6 +277,9 @@ export default function AdminDashboardClient({
                         <th className="text-left px-5 py-3 font-medium text-neutral-600">
                           Status
                         </th>
+                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-100">
@@ -300,6 +310,26 @@ export default function AdminDashboardClient({
                           </td>
                           <td className="px-5 py-4">
                             <StatusBadge status={b.status} />
+                          </td>
+                          <td className="px-5 py-4">
+                            {b.status === "pending" && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleUpdateStatus(b.id, "confirmed")}
+                                  disabled={isPending}
+                                  className="text-xs font-medium bg-black text-white px-3 py-1.5 rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateStatus(b.id, "cancelled")}
+                                  disabled={isPending}
+                                  className="text-xs font-medium border border-red-200 text-red-600 px-3 py-1.5 rounded hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}

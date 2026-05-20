@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Container from "@/components/ui/Container";
 import { siteConfig } from "@/lib/data/site";
 import { services } from "@/lib/data/services";
 import { submitBooking } from "./actions";
+import { getUnavailableTimes } from "./availability-action";
 
 const initialState = {
   success: false,
@@ -17,6 +18,27 @@ export default function BookingPage() {
     submitBooking,
     initialState
   );
+
+  const [unavailableTimes, setUnavailableTimes] = useState<string[]>([]);
+  const [isFetchingTimes, setIsFetchingTimes] = useState(false);
+
+  const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    if (!selectedDate) {
+      setUnavailableTimes([]);
+      return;
+    }
+    
+    setIsFetchingTimes(true);
+    try {
+      const times = await getUnavailableTimes(selectedDate);
+      setUnavailableTimes(times);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsFetchingTimes(false);
+    }
+  };
 
   return (
     <>
@@ -111,6 +133,7 @@ export default function BookingPage() {
                           id="booking-date"
                           name="date"
                           required
+                          onChange={handleDateChange}
                           className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none"
                         />
                         {state.errors?.date && (
@@ -131,19 +154,29 @@ export default function BookingPage() {
                           id="booking-time"
                           name="time"
                           required
-                          className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none appearance-none"
+                          disabled={isFetchingTimes}
+                          className="w-full border border-[var(--color-border)] rounded px-4 py-3 text-sm bg-white transition-colors focus:border-black focus:outline-none appearance-none disabled:opacity-50"
                         >
-                          <option value="">Select a time</option>
-                          <option value="08:00">8:00 AM</option>
-                          <option value="09:00">9:00 AM</option>
-                          <option value="10:00">10:00 AM</option>
-                          <option value="11:00">11:00 AM</option>
-                          <option value="12:00">12:00 PM</option>
-                          <option value="13:00">1:00 PM</option>
-                          <option value="14:00">2:00 PM</option>
-                          <option value="15:00">3:00 PM</option>
-                          <option value="16:00">4:00 PM</option>
-                          <option value="17:00">5:00 PM</option>
+                          <option value="">{isFetchingTimes ? "Loading times..." : "Select a time"}</option>
+                          {[
+                            { val: "08:00", label: "8:00 AM" },
+                            { val: "09:00", label: "9:00 AM" },
+                            { val: "10:00", label: "10:00 AM" },
+                            { val: "11:00", label: "11:00 AM" },
+                            { val: "12:00", label: "12:00 PM" },
+                            { val: "13:00", label: "1:00 PM" },
+                            { val: "14:00", label: "2:00 PM" },
+                            { val: "15:00", label: "3:00 PM" },
+                            { val: "16:00", label: "4:00 PM" },
+                            { val: "17:00", label: "5:00 PM" },
+                          ].map(({ val, label }) => {
+                            const isBooked = unavailableTimes.includes(val);
+                            return (
+                              <option key={val} value={val} disabled={isBooked} className={isBooked ? "text-neutral-400" : ""}>
+                                {label} {isBooked ? "(Booked)" : ""}
+                              </option>
+                            );
+                          })}
                         </select>
                         {state.errors?.time && (
                           <p className="text-xs text-[var(--color-error)] mt-1">

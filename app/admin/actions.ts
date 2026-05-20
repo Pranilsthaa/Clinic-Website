@@ -1,11 +1,13 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { adminUsers } from "@/lib/db/schema";
-import { createSession, deleteSession } from "@/lib/auth/session";
+import { adminUsers, bookings } from "@/lib/db/schema";
+import { createSession, deleteSession, getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
+import { sendEmail } from "@/lib/email";
 
 interface LoginState {
   success: boolean;
@@ -82,4 +84,47 @@ export async function loginAction(
 export async function logoutAction() {
   await deleteSession();
   redirect("/admin/login");
+}
+
+export async function updateBookingStatus(id: string, newStatus: "confirmed" | "cancelled") {
+  const session = await getSession();
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  // Find the booking
+  const bookingRecords = await db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.id, id))
+    .limit(1);
+
+  if (bookingRecords.length === 0) {
+    throw new Error("Booking not found");
+  }
+
+  const booking = bookingRecords[0];
+
+  // Update status
+  await db
+    .update(bookings)
+    .set({ status: newStatus, updatedAt: new Date() })
+    .where(eq(bookings.id, id));
+
+  // Send email to client
+  if (newStatus === "confirmed") {
+    await sendEmail({
+      to: booking.email,
+      subject: "Appointment Confirmed",
+      text: `Hi ${booking.firstName},\n\nYour appointment for ${booking.service} on ${booking.date} at ${booking.time} has been confirmed. We look forward to seeing you.\n\nBest regards,\nClinic Team`,
+    });
+  } else if (newStatus === "cancelled") {
+    await sendEmail({
+      to: booking.email,
+      subject: "Appointment Cancelled",
+      text: `Hi ${booking.firstName},\n\nWe regret to inform you that your appointment request for ${booking.service} on ${booking.date} at ${booking.time} has been cancelled.\n\nBest regards,\nClinic Team`,
+    });
+  }
+
+  revalidatePath("/admin");
 }

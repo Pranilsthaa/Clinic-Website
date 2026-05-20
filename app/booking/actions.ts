@@ -10,6 +10,7 @@
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/db/schema";
 import { sendEmail, sendNotificationEmail } from "@/lib/email";
+import { and, eq, inArray } from "drizzle-orm";
 
 interface BookingState {
   success: boolean;
@@ -55,6 +56,29 @@ export async function submitBooking(
   }
 
   try {
+    // Check for double bookings
+    const existingBookings = await db
+      .select()
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.date, rawData.date),
+          eq(bookings.time, rawData.time),
+          inArray(bookings.status, ["pending", "confirmed"])
+        )
+      )
+      .limit(1);
+
+    if (existingBookings.length > 0) {
+      return {
+        success: false,
+        message: "This time slot is already taken. Please select another time.",
+        errors: {
+          time: ["This time slot is unavailable."],
+        },
+      };
+    }
+
     await db.insert(bookings).values({
       firstName: rawData.firstName,
       lastName: rawData.lastName,
