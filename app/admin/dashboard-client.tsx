@@ -199,7 +199,7 @@ export default function AdminDashboardClient({
       <div id="admin-dashboard-container" className="h-[calc(100dvh-64px)] overflow-y-auto overscroll-contain w-full py-8 px-6" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="max-w-7xl mx-auto">
           {/* Tab Navigation */}
-          <div className="flex overflow-x-auto gap-1 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit mb-8 hide-scrollbar scroll-smooth">
+          <div className="grid grid-cols-2 sm:flex sm:overflow-x-auto gap-1 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit mb-8 hide-scrollbar scroll-smooth">
             {(["overview", "bookings", "messages", "timings"] as Tab[]).map((tab) => (
               <button
                 key={tab}
@@ -211,7 +211,7 @@ export default function AdminDashboardClient({
                     router.push(`?tab=${tab}`);
                   }
                 }}
-                className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2 rounded-md text-sm font-medium transition-all cursor-pointer text-center flex-shrink-0 ${activeTab === tab
+                className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2 rounded-md text-sm font-medium transition-all cursor-pointer text-center w-full sm:w-auto sm:flex-shrink-0 ${activeTab === tab
                   ? "bg-white text-neutral-900 shadow-sm"
                   : "text-neutral-500 hover:text-neutral-700"
                   }`}

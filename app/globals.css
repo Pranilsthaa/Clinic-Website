@@ -57,6 +57,11 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Restrict Android/iOS OS-level font size scaling */
+    font-size: 16px !important;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    text-size-adjust: none;
   }
 
   body {
