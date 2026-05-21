@@ -183,7 +183,7 @@ export default function AdminDashboardClient({
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tab Navigation */}
-        <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit mb-8">
+        <div className="grid grid-cols-2 sm:flex gap-1 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit mb-8">
           {(["overview", "bookings", "messages", "timings"] as Tab[]).map((tab) => (
             <button
               key={tab}
@@ -195,7 +195,7 @@ export default function AdminDashboardClient({
                   router.push(`?tab=${tab}`);
                 }
               }}
-              className={`px-5 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${activeTab === tab
+              className={`px-3 py-2 sm:px-5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all cursor-pointer text-center w-full sm:w-auto ${activeTab === tab
                 ? "bg-white text-neutral-900 shadow-sm"
                 : "text-neutral-500 hover:text-neutral-700"
                 }`}
@@ -350,87 +350,163 @@ export default function AdminDashboardClient({
                   No bookings found.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-neutral-200 bg-neutral-50">
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Patient
-                        </th>
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Service
-                        </th>
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Date
-                        </th>
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Time
-                        </th>
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Phone
-                        </th>
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Status
-                        </th>
-                        <th className="text-left px-5 py-3 font-medium text-neutral-600">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-100">
-                      {bookings.map((b) => (
-                        <tr
-                          key={b.id}
-                          className="hover:bg-neutral-50 transition-colors"
-                        >
-                          <td className="px-5 py-4">
-                            <p className="font-medium text-neutral-900">
+                <>
+                  {/* Desktop view (table) */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-neutral-200 bg-neutral-50">
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Patient
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Service
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Date
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Time
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Phone
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Status
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-neutral-600">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {bookings.map((b) => (
+                          <tr
+                            key={b.id}
+                            className="hover:bg-neutral-50 transition-colors"
+                          >
+                            <td className="px-5 py-4">
+                              <p className="font-medium text-neutral-900">
+                                {b.firstName} {b.lastName}
+                              </p>
+                              <p className="text-xs text-neutral-500">
+                                {b.email}
+                              </p>
+                            </td>
+                            <td className="px-5 py-4 text-neutral-700">
+                              {b.service}
+                            </td>
+                            <td className="px-5 py-4 text-neutral-700">
+                              {b.date}
+                            </td>
+                            <td className="px-5 py-4 text-neutral-700">
+                              {b.time}
+                            </td>
+                            <td className="px-5 py-4 text-neutral-700">
+                              {b.phone}
+                            </td>
+                            <td className="px-5 py-4">
+                              <StatusBadge status={b.status} />
+                            </td>
+                            <td className="px-5 py-4">
+                              {b.status === "pending" && (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "confirmed" })}
+                                    disabled={isPending}
+                                    className="text-xs font-medium bg-black text-white px-3 py-1.5 rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors cursor-pointer"
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "cancelled" })}
+                                    disabled={isPending}
+                                    className="text-xs font-medium border border-red-200 text-red-600 px-3 py-1.5 rounded hover:bg-red-50 disabled:opacity-50 transition-colors cursor-pointer"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile view (cards) */}
+                  <div className="block md:hidden divide-y divide-neutral-100">
+                    {bookings.map((b) => (
+                      <div key={b.id} className="p-5 flex flex-col gap-4">
+                        {/* Header: Name, Status & Date */}
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-semibold text-neutral-900 text-base">
                               {b.firstName} {b.lastName}
                             </p>
-                            <p className="text-xs text-neutral-500">
+                            <p className="text-xs text-neutral-500 mt-0.5">
                               {b.email}
                             </p>
-                          </td>
-                          <td className="px-5 py-4 text-neutral-700">
-                            {b.service}
-                          </td>
-                          <td className="px-5 py-4 text-neutral-700">
-                            {b.date}
-                          </td>
-                          <td className="px-5 py-4 text-neutral-700">
-                            {b.time}
-                          </td>
-                          <td className="px-5 py-4 text-neutral-700">
-                            {b.phone}
-                          </td>
-                          <td className="px-5 py-4">
-                            <StatusBadge status={b.status} />
-                          </td>
-                          <td className="px-5 py-4">
-                            {b.status === "pending" && (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "confirmed" })}
-                                  disabled={isPending}
-                                  className="text-xs font-medium bg-black text-white px-3 py-1.5 rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "cancelled" })}
-                                  disabled={isPending}
-                                  className="text-xs font-medium border border-red-200 text-red-600 px-3 py-1.5 rounded hover:bg-red-50 disabled:opacity-50 transition-colors"
-                                >
-                                  Reject
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                          <StatusBadge status={b.status} />
+                        </div>
+
+                        {/* Booking Details Grid */}
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-3 bg-neutral-50 p-3 rounded-lg border border-neutral-100 text-xs">
+                          <div>
+                            <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Service</span>
+                            <span className="font-medium text-neutral-700 mt-0.5 block">{b.service}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Phone</span>
+                            <a href={`tel:${b.phone}`} className="font-medium text-black hover:underline mt-0.5 block flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5 text-neutral-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                              </svg>
+                              {b.phone}
+                            </a>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Date</span>
+                            <span className="font-medium text-neutral-700 mt-0.5 block">{b.date}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Time</span>
+                            <span className="font-medium text-neutral-700 mt-0.5 block">{b.time}</span>
+                          </div>
+                        </div>
+
+                        {/* Longer notes rendering */}
+                        {b.notes && (
+                          <div className="bg-neutral-50/50 p-3 rounded-lg border border-neutral-100 text-xs">
+                            <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Notes</span>
+                            <p className="text-neutral-600 font-normal leading-relaxed whitespace-pre-wrap">{b.notes}</p>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        {b.status === "pending" && (
+                          <div className="flex items-center gap-3 mt-1">
+                            <button
+                              onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "confirmed" })}
+                              disabled={isPending}
+                              className="flex-1 text-xs font-semibold bg-black text-white py-2.5 rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors text-center cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => setConfirmModal({ isOpen: true, id: b.id, newStatus: "cancelled" })}
+                              disabled={isPending}
+                              className="flex-1 text-xs font-semibold border border-red-200 text-red-600 py-2.5 rounded hover:bg-red-50 disabled:opacity-50 transition-colors text-center cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
               
               {/* Pagination UI */}
