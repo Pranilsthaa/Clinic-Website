@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Toaster, toast } from 'sonner';
 import { useRouter } from "next/navigation";
 import { logoutAction, updateBookingStatus, addTimeSlot, toggleTimeSlotState, deleteTimeSlot } from "./actions";
@@ -75,6 +75,21 @@ export default function AdminDashboardClient({
     newStatus: "confirmed" | "cancelled" | null;
   }>({ isOpen: false, id: null, newStatus: null });
 
+  // Lock body scroll and reset scroll container on activeTab change
+  useEffect(() => {
+    document.body.classList.add("overflow-hidden");
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = document.getElementById("admin-dashboard-container");
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, [activeTab]);
+
   const handleUpdateStatus = (id: string, newStatus: "confirmed" | "cancelled") => {
     startTransition(async () => {
       try {
@@ -142,9 +157,9 @@ export default function AdminDashboardClient({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-neutral-50 overflow-auto">
+    <div className="fixed inset-0 z-50 bg-neutral-50 flex flex-col overflow-hidden h-[100dvh] w-screen">
       {/* Top Bar */}
-      <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
+      <header className="bg-white border-b border-neutral-200 shrink-0">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
@@ -181,29 +196,30 @@ export default function AdminDashboardClient({
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Tab Navigation */}
-        <div className="grid grid-cols-2 sm:flex gap-1 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit mb-8">
-          {(["overview", "bookings", "messages", "timings"] as Tab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                if (tab === "bookings") {
-                  router.push(`?tab=bookings&page=1`);
-                } else {
-                  router.push(`?tab=${tab}`);
-                }
-              }}
-              className={`px-3 py-2 sm:px-5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all cursor-pointer text-center w-full sm:w-auto ${activeTab === tab
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-500 hover:text-neutral-700"
-                }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
+      <div id="admin-dashboard-container" className="h-[calc(100dvh-64px)] overflow-y-auto overscroll-contain w-full py-8 px-6" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="max-w-7xl mx-auto">
+          {/* Tab Navigation */}
+          <div className="flex overflow-x-auto gap-1 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit mb-8 hide-scrollbar scroll-smooth">
+            {(["overview", "bookings", "messages", "timings"] as Tab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab);
+                  if (tab === "bookings") {
+                    router.push(`?tab=bookings&page=1`);
+                  } else {
+                    router.push(`?tab=${tab}`);
+                  }
+                }}
+                className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2 rounded-md text-sm font-medium transition-all cursor-pointer text-center flex-shrink-0 ${activeTab === tab
+                  ? "bg-white text-neutral-900 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
 
         {/* Overview */}
         {activeTab === "overview" && (
@@ -722,6 +738,7 @@ export default function AdminDashboardClient({
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Toaster */}
