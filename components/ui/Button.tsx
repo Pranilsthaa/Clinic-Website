@@ -3,7 +3,7 @@ import Link from "next/link";
 interface ButtonProps {
   children: React.ReactNode;
   href?: string;
-  variant?: "primary" | "outline" | "ghost";
+  variant?: "primary" | "accent" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
@@ -13,19 +13,23 @@ interface ButtonProps {
 }
 
 const baseStyles =
-  "inline-flex items-center justify-center font-semibold transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
+  "inline-flex items-center justify-center font-semibold transition-all duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]";
 
 const variants = {
-  primary: "bg-black text-white hover:bg-[#1a1a1a] active:bg-[#333]",
+  primary:
+    "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-container)]",
+  accent:
+    "bg-[var(--color-accent)] text-white hover:bg-[var(--color-primary)] shadow-[0_20px_50px_-12px_rgba(15,110,86,0.08)]",
   outline:
-    "border-2 border-black text-black bg-transparent hover:bg-black hover:text-white",
-  ghost: "text-black bg-transparent hover:bg-[#f3f3f4]",
+    "border-2 border-[var(--color-accent)] text-[var(--color-primary)] bg-transparent hover:bg-[var(--color-accent)]/5",
+  ghost:
+    "text-[var(--color-primary)] bg-transparent hover:bg-[var(--color-surface-container)]",
 };
 
 const sizes = {
-  sm: "px-5 py-2 text-sm rounded",
-  md: "px-8 py-3 text-base rounded",
-  lg: "px-10 py-4 text-lg rounded",
+  sm: "px-5 py-2 text-sm rounded-full",
+  md: "px-8 py-3 text-base rounded-full",
+  lg: "px-10 py-4 text-lg rounded-full",
 };
 
 export default function Button({

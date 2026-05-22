@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
-import { Montserrat, Inter } from "next/font/google";
+import { Libre_Caslon_Text, Manrope } from "next/font/google";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { LocalBusinessSchema, WebsiteSchema } from "@/components/seo/JsonLd";
 import { siteConfig } from "@/lib/data/site";
 import "./globals.css";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const libreCaslon = Libre_Caslon_Text({
+  variable: "--font-libre-caslon-text",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "700"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
 });
@@ -35,6 +36,7 @@ export const metadata: Metadata = {
     "physical therapy",
     "spine health",
     "rehabilitation",
+    "car accident recovery",
   ],
   authors: [{ name: siteConfig.name }],
   openGraph: {
@@ -64,8 +66,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} ${inter.variable} antialiased`}
+      className={`${libreCaslon.variable} ${manrope.variable} antialiased`}
     >
+      <head>
+        {/* Material Symbols for section icons */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-screen flex flex-col bg-[var(--color-background)]">
         <LocalBusinessSchema />
         <WebsiteSchema />

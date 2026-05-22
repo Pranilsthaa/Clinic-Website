@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { siteConfig } from "@/lib/data/site";
 import Container from "@/components/ui/Container";
-import Button from "@/components/ui/Button";
 
 export default function Header() {
   const pathname = usePathname();
@@ -19,13 +18,11 @@ export default function Header() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Change background when scrolled
       setScrolled(currentScrollY > 20);
 
-      // Hide on scroll down, show on scroll up (mobile focus)
       if (currentScrollY > lastScrollY && currentScrollY > 80) {
         setHidden(true);
-        setIsOpen(false); // Close menu when scrolling down
+        setIsOpen(false);
       } else if (currentScrollY < lastScrollY) {
         setHidden(false);
       }
@@ -37,37 +34,36 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
   const toggleMenu = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault(); // Prevent double firing on touch devices
+    e.preventDefault();
     setIsOpen(!isOpen);
   };
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] h-20 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-md shadow-[0_1px_0_0_var(--color-border)]"
-          : "bg-white"
+          ? "bg-[var(--color-background)]/80 backdrop-blur-md shadow-2xl shadow-[rgba(15,110,86,0.05)]"
+          : "bg-[var(--color-background)]"
       } ${hidden ? "-translate-y-full md:translate-y-0" : "translate-y-0"}`}
     >
-      <Container className="flex items-center justify-between h-20">
+      <Container className="flex items-center justify-between h-full">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center group relative z-50"
+          className="flex items-center gap-3 group relative z-50"
           aria-label={`${siteConfig.name} – Home`}
         >
           <Image
-            src={siteConfig.logo.light}
+            src={siteConfig.logo.dark}
             alt={siteConfig.name}
             width={180}
             height={60}
-            className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-110"
+            className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             priority
           />
         </Link>
@@ -81,51 +77,65 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`relative text-sm font-medium tracking-wide uppercase transition-colors duration-200 hover:text-black py-1 ${
+              className={`relative text-sm font-medium tracking-wide transition-colors duration-200 py-1 font-[family-name:var(--font-body)] ${
                 pathname === link.href
-                  ? "text-black after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-black"
-                  : "text-[var(--color-secondary)]"
+                  ? "text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-1"
+                  : "text-[var(--color-foreground-muted)] hover:text-[var(--color-primary)]"
               }`}
             >
               {link.label}
             </Link>
           ))}
-          <Button href="/booking" size="sm" className="text-white">
-            Book Now
-          </Button>
         </nav>
 
-        {/* Mobile Hamburger */}
-        <button
-          type="button"
-          className="md:hidden relative z-[60] flex flex-col justify-center items-center w-12 h-12 gap-[6px] cursor-pointer touch-none bg-transparent border-none outline-none"
-          onClick={toggleMenu}
-          onTouchEnd={toggleMenu}
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isOpen}
-          style={{ WebkitTapHighlightColor: "transparent" }}
-        >
-          <span
-            className={`block w-7 h-[2px] bg-black transition-all duration-300 origin-center pointer-events-none ${
-              isOpen ? "rotate-45 translate-y-[8px]" : ""
-            }`}
-          />
-          <span
-            className={`block w-7 h-[2px] bg-black transition-all duration-300 pointer-events-none ${
-              isOpen ? "opacity-0 scale-0" : ""
-            }`}
-          />
-          <span
-            className={`block w-7 h-[2px] bg-black transition-all duration-300 origin-center pointer-events-none ${
-              isOpen ? "-rotate-45 -translate-y-[8px]" : ""
-            }`}
-          />
-        </button>
+        {/* Right side */}
+        <div className="flex items-center gap-6">
+          <a
+            href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}
+            className="hidden lg:block text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-body)]"
+          >
+            {siteConfig.phone}
+          </a>
+          <Link
+            href="/booking"
+            className="hidden md:inline-flex bg-[var(--color-primary)] text-white px-6 py-3 rounded-full font-semibold text-[12px] tracking-[0.1em] uppercase hover:bg-[var(--color-primary-container)] transition-colors duration-300 hover:scale-105 active:scale-95 font-[family-name:var(--font-body)]"
+            id="header-book-now"
+          >
+            Book Now
+          </Link>
+
+          {/* Mobile Hamburger */}
+          <button
+            type="button"
+            className="md:hidden relative z-[60] flex flex-col justify-center items-center w-12 h-12 gap-[6px] cursor-pointer touch-none bg-transparent border-none outline-none"
+            onClick={toggleMenu}
+            onTouchEnd={toggleMenu}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+            style={{ WebkitTapHighlightColor: "transparent" }}
+          >
+            <span
+              className={`block w-7 h-[2px] bg-[var(--color-primary)] transition-all duration-300 origin-center pointer-events-none ${
+                isOpen ? "rotate-45 translate-y-[8px]" : ""
+              }`}
+            />
+            <span
+              className={`block w-7 h-[2px] bg-[var(--color-primary)] transition-all duration-300 pointer-events-none ${
+                isOpen ? "opacity-0 scale-0" : ""
+              }`}
+            />
+            <span
+              className={`block w-7 h-[2px] bg-[var(--color-primary)] transition-all duration-300 origin-center pointer-events-none ${
+                isOpen ? "-rotate-45 -translate-y-[8px]" : ""
+              }`}
+            />
+          </button>
+        </div>
       </Container>
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out bg-white shadow-xl ${
+        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out bg-[var(--color-background)] shadow-xl ${
           isOpen
             ? "max-h-96 border-b border-[var(--color-border)] opacity-100"
             : "max-h-0 opacity-0"
@@ -136,18 +146,22 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`block text-base font-medium tracking-wide uppercase py-3 border-b border-[var(--color-border)] transition-colors ${
+              className={`block text-base font-medium tracking-wide py-3 border-b border-[var(--color-sand-muted)] transition-colors font-[family-name:var(--font-body)] ${
                 pathname === link.href
-                  ? "text-black"
-                  : "text-[var(--color-secondary)]"
+                  ? "text-[var(--color-primary)]"
+                  : "text-[var(--color-foreground-muted)]"
               }`}
             >
               {link.label}
             </Link>
           ))}
-          <Button href="/booking" size="md" className="mt-4 w-full">
+          <Link
+            href="/booking"
+            className="mt-4 w-full inline-flex items-center justify-center bg-[var(--color-accent)] text-white py-3 rounded-full font-semibold text-sm tracking-[0.05em] uppercase hover:bg-[var(--color-primary)] transition-colors"
+            id="mobile-book-now"
+          >
             Book Now
-          </Button>
+          </Link>
         </Container>
       </div>
     </header>

@@ -9,8 +9,8 @@ export default function Divider({
 }: DividerProps) {
   const color =
     variant === "accent"
-      ? "border-[var(--color-border-strong)]"
-      : "border-[var(--color-border)]";
+      ? "border-[var(--color-accent)]"
+      : "border-[var(--color-sand-muted)]";
 
-  return <hr className={`w-full border-t ${color} ${className}`} />;
+  return <hr className={`border-t ${color} ${className}`} />;
 }

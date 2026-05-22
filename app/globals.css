@@ -1,40 +1,46 @@
 @import "tailwindcss";
 
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 /* ─── Design Tokens ──────────────────────────────────────────── */
 :root {
-  /* Core Palette */
-  --color-primary: #000000;
-  --color-primary-hover: #1a1a1a;
-  --color-secondary: #5e5e5e;
-  --color-background: #f9f9f9;
+  /* Core Palette — Human-Centric Wellness */
+  --color-primary: #005440;
+  --color-primary-container: #0F6E56;
+  --color-accent: #1D9E75;
+  --color-background: #fbf9f4;
   --color-surface: #ffffff;
-  --color-surface-subtle: #f3f3f4;
-  --color-surface-dim: #eeeeee;
-  --color-foreground: #1a1c1c;
-  --color-foreground-muted: #4c4546;
-  --color-border: #e5e5e5;
-  --color-border-strong: #000000;
+  --color-surface-container: #f0eee9;
+  --color-surface-container-low: #f5f3ee;
+  --color-surface-container-high: #eae8e3;
+  --color-sand-soft: #FAEEDA;
+  --color-sand-muted: #EFE9DE;
+  --color-foreground: #1A1C1B;
+  --color-foreground-muted: #3f4944;
+  --color-border: #bec9c3;
+  --color-border-muted: #EFE9DE;
   --color-error: #ba1a1a;
-  --color-clinical-gray: #333333;
 
   /* Typography */
-  --font-heading: var(--font-montserrat), "Montserrat", sans-serif;
-  --font-body: var(--font-inter), "Inter", sans-serif;
+  --font-heading: var(--font-libre-caslon-text), "Libre Caslon Text", serif;
+  --font-body: var(--font-manrope), "Manrope", sans-serif;
 
   /* Spacing */
-  --container-max: 1280px;
-  --gutter: 32px;
-  --margin-desktop: 80px;
-  --margin-mobile: 24px;
+  --container-max: 1200px;
+  --gutter: 24px;
+  --margin-desktop: 64px;
+  --margin-mobile: 20px;
   --section-gap: 120px;
   --section-gap-mobile: 64px;
 
   /* Shapes */
-  --radius-sm: 0.125rem;
-  --radius-base: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.25rem;
+  --radius-base: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
   --radius-full: 9999px;
 }
 
@@ -42,7 +48,6 @@
   --color-background: var(--color-background);
   --color-foreground: var(--color-foreground);
   --font-sans: var(--font-body);
-  --font-mono: var(--font-geist-mono);
 }
 
 @layer base {
@@ -57,7 +62,6 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Restrict Android/iOS OS-level font size scaling */
     font-size: 16px !important;
     -webkit-text-size-adjust: none;
     -moz-text-size-adjust: none;
@@ -75,21 +79,20 @@
   /* ─── Typography ─────────────────────────────────────────────── */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 600;
+    font-weight: 400;
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: var(--color-primary);
   }
 
   h1 {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3rem);
     letter-spacing: -0.02em;
     line-height: 1.1;
   }
 
   h2 {
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-size: clamp(1.5rem, 3vw, 2rem);
   }
 
   h3 {
@@ -172,10 +175,19 @@
 .delay-400 { animation-delay: 0.4s; }
 .delay-500 { animation-delay: 0.5s; }
 
+/* ─── Organic Shapes & Elevation ─────────────────────────────── */
+.organic-clip {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+
+.soft-glow {
+  box-shadow: 0 20px 50px -12px rgba(15, 110, 86, 0.08);
+}
+
 /* ─── Selection ──────────────────────────────────────────────── */
 ::selection {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
+  background-color: var(--color-accent);
+  color: white;
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────── */
@@ -184,7 +196,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface-subtle);
+  background: var(--color-surface-container-low);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -193,12 +205,12 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-secondary);
+  background: var(--color-primary);
 }
 
 /* ─── Focus Styles ───────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
